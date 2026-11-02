@@ -66,6 +66,10 @@ Applies to **NexQL Mute Dark** and close dark variants; light themes remap the s
 | NexQL Sage Day | light | Sage-green light pair |
 | NexQL Sage at Night | dark | Sage-tinted dark counterpart |
 
+## NexQL extension colors
+
+Each theme also sets the NexQL extension's brand colors so its UI matches the active theme: `nexql.accent` (the theme's focus color) and `nexql.accentForeground`; `nexql.ribbon.*` (blue, indigo, purple, magenta, orange, amber; darkened on light themes); `nexql.mode.read|write|admin` and `postgres.envProd|envStaging|envDev` (mapped from the theme's success/warning/error colors). Accent and mode colors are contrast-checked against the editor background.
+
 ## Development
 
 ```bash

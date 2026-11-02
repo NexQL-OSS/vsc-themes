@@ -2,6 +2,10 @@
 
 All notable changes to NexQL Themes are documented in this file.
 
+## Unreleased
+
+- Every theme now emits the NexQL extension brand colors, derived from its own palette: `nexql.accent`, `nexql.accentForeground`, `nexql.ribbon.{blue,indigo,purple,magenta,orange,amber}`, `nexql.mode.{read,write,admin}`, `postgres.envProd`, `postgres.envStaging`, `postgres.envDev`. Accent and mode colors are validated against the editor background (WCAG AA).
+
 ## 0.1.0
 
 Initial public release — **11 hand-authored themes** with scenario-anchored names, `NexQL` prefix in the picker, and a shared design language: quiet keywords, disciplined spectrum, one reserved accent (magenta for errors only).

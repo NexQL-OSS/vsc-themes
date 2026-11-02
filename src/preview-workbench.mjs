@@ -1,4 +1,30 @@
-import { sortColors, withAlpha } from "./utils.mjs";
+import { contrastRatio, darken, lighten, sortColors, withAlpha } from "./utils.mjs";
+
+/** NexQL brand ribbon hues (extension defaults). */
+const RIBBON_HUES = {
+  blue: "#3D6FE0",
+  indigo: "#6C4CD6",
+  purple: "#A23BC9",
+  magenta: "#E0388F",
+  orange: "#F26B3A",
+  amber: "#F5B23A",
+};
+
+/**
+ * Nudge `color` toward readable (lighter on dark, darker on light) until it
+ * reaches `min` contrast against `bg`.
+ * @param {string} color
+ * @param {string} bg
+ * @param {number} min
+ * @param {boolean} isLight
+ */
+function ensureContrast(color, bg, min, isLight) {
+  let out = color.slice(0, 7);
+  for (let i = 0; i < 40 && contrastRatio(out, bg) < min; i++) {
+    out = isLight ? darken(out, 0.05) : lighten(out, 0.05);
+  }
+  return out;
+}
 
 /** @typedef {import('./directions/types.mjs').DirectionSpec} DirectionSpec */
 
@@ -22,8 +48,30 @@ export function buildPreviewWorkbench(direction) {
     return withAlpha(hex, alpha);
   };
 
+  const isLight = direction.type === "light" || direction.uiTheme === "vs" || direction.uiTheme === "hc-light";
+  const bgEditor = s.bg0;
+  const brandMin = isHc ? 7 : 4.5;
+  const brand = (hex) => ensureContrast(hex, bgEditor, brandMin, isLight);
+  const accent = brand(a.focus);
+  const accentFg = contrastRatio(s.bg0, accent) >= contrastRatio(s.fg0, accent) ? s.bg0 : s.fg0;
+  const ribbon = (hex) => (isLight ? darken(hex, 0.2) : hex);
+
   /** @type {Record<string, string>} */
   const colors = {
+    "nexql.accent": accent,
+    "nexql.accentForeground": accentFg,
+    "nexql.ribbon.blue": ribbon(RIBBON_HUES.blue),
+    "nexql.ribbon.indigo": ribbon(RIBBON_HUES.indigo),
+    "nexql.ribbon.purple": ribbon(RIBBON_HUES.purple),
+    "nexql.ribbon.magenta": ribbon(RIBBON_HUES.magenta),
+    "nexql.ribbon.orange": ribbon(RIBBON_HUES.orange),
+    "nexql.ribbon.amber": ribbon(RIBBON_HUES.amber),
+    "nexql.mode.read": brand(a.success),
+    "nexql.mode.write": brand(a.warning),
+    "nexql.mode.admin": brand(a.error),
+    "postgres.envProd": brand(a.error),
+    "postgres.envStaging": brand(a.warning),
+    "postgres.envDev": brand(a.success),
     focusBorder: a.focus,
     foreground: s.fg1,
     descriptionForeground: s.fg3,

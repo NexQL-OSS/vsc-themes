@@ -774,5 +774,10 @@ export function contrastPairs(colors, type) {
     { fg: "button.foreground", bg: "button.background", min: uiMin, label: "button" },
     { fg: "input.foreground", bg: "input.background", min: textMin, label: "input" },
     { fg: "tab.activeForeground", bg: "tab.activeBackground", min: uiMin, label: "active tab" },
+    { fg: "nexql.accent", bg: "editor.background", min: textMin, label: "nexql accent" },
+    { fg: "nexql.accentForeground", bg: "nexql.accent", min: textMin, label: "nexql accent foreground" },
+    { fg: "nexql.mode.read", bg: "editor.background", min: textMin, label: "nexql mode read" },
+    { fg: "nexql.mode.write", bg: "editor.background", min: textMin, label: "nexql mode write" },
+    { fg: "nexql.mode.admin", bg: "editor.background", min: textMin, label: "nexql mode admin" },
   ];
 }
