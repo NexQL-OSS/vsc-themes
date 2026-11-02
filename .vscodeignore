@@ -6,3 +6,7 @@ graphify-out/**
 *.vsix
 *.tgz
 .DS_Store
+# Marketing site (Astro) and its deploy config; not part of the extension
+site/**
+vercel.json
+themes/manifest.json

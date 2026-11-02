@@ -1,0 +1,179 @@
+---
+/**
+ * A drawn code editor in one theme's real colours. The theme's palette arrives as
+ * --p-* custom properties on the root element, so the home page can swap them in the
+ * browser (data-live) without redrawing anything.
+ */
+import CodeLines from "./CodeLines.astro";
+import { previewStyle, type Theme } from "../data/themes";
+import { MINI, SQL, TS } from "../data/samples";
+
+interface Props {
+  theme: Theme;
+  variant?: "mini" | "full";
+  /** Home page preview: JS updates the colours and the labels marked data-ed. */
+  live?: boolean;
+  id?: string;
+}
+const { theme, variant = "full", live = false, id } = Astro.props;
+---
+
+{
+  variant === "mini" ? (
+    <div class="ed mini" style={previewStyle(theme)} role="img" aria-label={`${theme.short} sample: a SQL query in this theme's colours`}>
+      <div class="bar">
+        <i class="d1" /><i class="d2" /><i class="d3" />
+        <span class="file">query.sql</span>
+      </div>
+      <div class="body"><CodeLines lines={MINI} /></div>
+    </div>
+  ) : (
+    <div class="ed full" id={id} style={previewStyle(theme)} data-editor data-live={live ? "" : undefined}>
+      <div class="bar">
+        <i class="d1" /><i class="d2" /><i class="d3" />
+        <span class="file" data-ed="name">{theme.name}</span>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Sample file" hidden>
+        <button type="button" role="tab" aria-selected="true" data-file="sql">revenue.sql</button>
+        <button type="button" role="tab" aria-selected="false" data-file="ts" tabindex="-1">api.ts</button>
+      </div>
+      <div class="body" role="tabpanel" data-panel="sql"><CodeLines lines={SQL} numbers /></div>
+      <div class="body" role="tabpanel" data-panel="ts" hidden><CodeLines lines={TS} numbers /></div>
+      <div class="status">
+        <span><span data-ed="kind">{theme.light ? "Light" : "Dark"}</span> · <span data-ed="family">{theme.family}</span></span>
+        <span class="lang" data-ed="lang">SQL · PostgreSQL</span>
+      </div>
+    </div>
+  )
+}
+
+<style>
+  .ed {
+    background: var(--p-bg);
+    color: var(--p-fg);
+    border: 1px solid var(--p-border);
+    border-radius: 11px;
+    overflow: hidden;
+    font-family: var(--font-mono);
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 12px;
+    background: var(--p-panel);
+    border-bottom: 1px solid var(--p-border);
+  }
+  .bar i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .d1 { background: var(--p-tag); }
+  .d2 { background: var(--p-number); }
+  .d3 { background: var(--p-func); }
+  .file {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--p-muted);
+  }
+  .body {
+    padding: 13px 14px;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+  .body[hidden] {
+    display: none;
+  }
+  .mini .body {
+    overflow: hidden;
+  }
+  .full .bar {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+  .full .bar i {
+    width: 11px;
+    height: 11px;
+  }
+  .full .file {
+    font-size: 12px;
+  }
+  .full .body {
+    padding: 16px 18px;
+    font-size: 13px;
+  }
+  .tabs {
+    display: flex;
+    background: var(--p-panel);
+    border-bottom: 1px solid var(--p-border);
+  }
+  .tabs[hidden] {
+    display: none;
+  }
+  .tabs button {
+    appearance: none;
+    border: 0;
+    border-right: 1px solid var(--p-border);
+    border-top: 2px solid transparent;
+    background: transparent;
+    color: var(--p-muted);
+    font: 500 12px/1 var(--font-mono);
+    padding: 11px 16px;
+    cursor: pointer;
+  }
+  .tabs button[aria-selected="true"] {
+    background: var(--p-bg);
+    color: var(--p-fg);
+    border-top-color: var(--p-accent);
+  }
+  .tabs button:focus-visible {
+    outline-offset: -2px;
+    outline-color: var(--p-accent);
+  }
+  .status {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 6px 14px;
+    background: var(--p-badge);
+    color: var(--p-badgeFg);
+    font: 600 11px/1.4 var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+</style>
+
+<script>
+  // Sample file tabs (SQL / TypeScript) for every full editor on the page.
+  document.querySelectorAll<HTMLElement>("[data-editor]").forEach((ed) => {
+    const tabs = ed.querySelector<HTMLElement>(".tabs");
+    if (!tabs) return;
+    tabs.hidden = false;
+    const buttons = [...tabs.querySelectorAll<HTMLButtonElement>("[data-file]")];
+    const lang: Record<string, string> = { sql: "SQL · PostgreSQL", ts: "TypeScript" };
+    const show = (file: string, focus = false) => {
+      buttons.forEach((b) => {
+        const on = b.dataset.file === file;
+        b.setAttribute("aria-selected", String(on));
+        b.tabIndex = on ? 0 : -1;
+        if (on && focus) b.focus();
+      });
+      ed.querySelectorAll<HTMLElement>("[data-panel]").forEach((p) => (p.hidden = p.dataset.panel !== file));
+      const l = ed.querySelector("[data-ed=lang]");
+      if (l) l.textContent = lang[file] ?? "";
+    };
+    buttons.forEach((b, i) => {
+      b.addEventListener("click", () => show(b.dataset.file!));
+      b.addEventListener("keydown", (e) => {
+        const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (!step) return;
+        e.preventDefault();
+        show(buttons[(i + step + buttons.length) % buttons.length].dataset.file!, true);
+      });
+    });
+  });
+</script>

@@ -1,0 +1,106 @@
+---
+/** The three install steps. On the home page `live` lets the preview picker update the settings snippet. */
+import Code from "./Code.astro";
+import { EXTENSION_ID, INSTALL_CMD, MARKETPLACE_URL, OPEN_VSX_URL, VSCODE_URI } from "../data/site";
+import { THEME_COUNT, type Theme } from "../data/themes";
+import { esc } from "../lib/inline";
+
+interface Props {
+  theme: Theme;
+  live?: boolean;
+}
+const { theme, live = false } = Astro.props;
+const name = live ? `<span data-snippet-name>${esc(theme.name)}</span>` : esc(theme.name);
+const snippet = `"workbench.colorTheme": "${name}"`;
+---
+
+<ol class="steps">
+  <li>
+    <h3>Install the extension</h3>
+    <p>
+      One extension, <code>{EXTENSION_ID}</code>, carries all {THEME_COUNT} themes. Open Quick Open with <kbd>Ctrl</kbd>+<kbd>P</kbd> (<kbd>Cmd</kbd>+<kbd>P</kbd> on macOS) and run:
+    </p>
+    <Code html={`<span class="p">&gt; </span>${INSTALL_CMD}`} label="Copy install command" />
+    <p class="alt">
+      Or install from the <a href={MARKETPLACE_URL}>VS Marketplace</a>, <a href={VSCODE_URI}>open it in VS Code</a>, or get it from
+      <a href={OPEN_VSX_URL}>Open VSX</a> for VSCodium and other editors.
+    </p>
+  </li>
+  <li>
+    <h3>Pick a theme</h3>
+    <p>
+      Press <kbd>Ctrl</kbd>+<kbd>K</kbd> then <kbd>Ctrl</kbd>+<kbd>T</kbd> (<kbd>Cmd</kbd>+<kbd>K</kbd> then <kbd>Cmd</kbd>+<kbd>T</kbd> on macOS), type <code>NexQL</code>, and move through the list. VS Code previews each one as you go.
+    </p>
+  </li>
+  <li>
+    <h3>Or set it in settings.json</h3>
+    <p>
+      {live ? <>To keep <b data-theme-short>{theme.short}</b>, add this to</> : <>To keep {theme.short}, add this to</>} your <code>settings.json</code>:
+    </p>
+    <Code html={snippet} label="Copy settings snippet" />
+  </li>
+</ol>
+
+<style>
+  .steps {
+    list-style: none;
+    margin: 28px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+    counter-reset: step;
+  }
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding: 20px 22px 22px 70px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-2);
+    min-width: 0;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 20px;
+    top: 14px;
+    font: italic 400 36px/1.1 var(--font-serif);
+    color: var(--accent);
+  }
+  .steps h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .steps p {
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 46em;
+  }
+  .steps :global(.code) {
+    margin-top: 12px;
+  }
+  .steps .alt {
+    margin-top: 12px;
+    font-size: 14.5px;
+  }
+  kbd {
+    font: 500 12px/1 var(--font-mono);
+    padding: 3px 6px;
+    border: 1px solid var(--line-2);
+    border-radius: 5px;
+    background: var(--panel-2);
+    color: var(--fg);
+    box-shadow: var(--shadow-1);
+  }
+  @media (max-width: 560px) {
+    .steps li {
+      padding: 56px 16px 18px;
+    }
+    .steps li::before {
+      left: 16px;
+      top: 10px;
+    }
+  }
+</style>

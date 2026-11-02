@@ -8,7 +8,6 @@ OVSX_CMD := npx -y ovsx
 VSCODE ?= code
 SITE_PORT ?= 3000
 SITE_DIR := site
-SERVE_CONFIG := serve.json
 
 EXTENSION_NAME := $(shell $(NODE_BIN) -p "require('./package.json').name")
 EXTENSION_VERSION := $(shell $(NODE_BIN) -p "require('./package.json').version")
@@ -36,8 +35,8 @@ help:
 		'  debug           Launch Extension Development Host via CLI' \
 		'  open            Open the workspace in VS Code' \
 		'  git-tag         Interactive semver bump, commit, and push (CI publishes on upstream merge)' \
-		'  site            Build marketing site and serve locally (SITE_PORT=$(SITE_PORT))' \
-		'  build-site      Generate themes/manifest.json and site assets' \
+		'  site            Build the marketing site and preview it locally (SITE_PORT=$(SITE_PORT))' \
+		'  build-site      Build the Astro marketing site into site/dist (installs site deps if needed)' \
 		'' \
 		'Development:' \
 		'  Press F5 in VS Code ("Run Extension") to test without packaging.'
@@ -84,11 +83,15 @@ debug:
 open:
 	$(VSCODE) --new-window "$(PWD)"
 
-build-site:
-	$(NPM_BIN) run build:site
+$(SITE_DIR)/node_modules: $(SITE_DIR)/package-lock.json
+	$(NPM_BIN) --prefix $(SITE_DIR) ci
+	@touch $@
+
+build-site: $(SITE_DIR)/node_modules
+	$(NPM_BIN) --prefix $(SITE_DIR) run build
 
 site: build-site
-	npx --yes serve . -l $(SITE_PORT) -c $(SERVE_CONFIG)
+	$(NPM_BIN) --prefix $(SITE_DIR) run preview -- --port $(SITE_PORT)
 
 # Git tag and version bump (interactive)
 git-tag:

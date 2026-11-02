@@ -1,0 +1,24 @@
+{
+  "name": "nexql-themes-site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync-brand": "node scripts/sync-brand.mjs",
+    "prepare-data": "node ../scripts/build-site.mjs",
+    "predev": "npm run prepare-data && npm run sync-brand",
+    "dev": "astro dev",
+    "prebuild": "npm run prepare-data",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.0",
+    "astro": "^7.1.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^6.0.3"
+  }
+}

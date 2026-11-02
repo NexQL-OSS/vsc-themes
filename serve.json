@@ -1,9 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/themes/:path*", "destination": "/themes/:path*" },
-    { "source": "/assets/:path*", "destination": "/site/assets/:path*" },
-    { "source": "/js/:path*", "destination": "/site/js/:path*" },
-    { "source": "/styles.css", "destination": "/site/styles.css" },
-    { "source": "/", "destination": "/site/index.html" }
-  ]
-}

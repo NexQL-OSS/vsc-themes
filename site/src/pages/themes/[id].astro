@@ -1,0 +1,352 @@
+---
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SiteHeader from "../../components/SiteHeader.astro";
+import SiteFooter from "../../components/SiteFooter.astro";
+import Editor from "../../components/Editor.astro";
+import InstallSteps from "../../components/InstallSteps.astro";
+import { FAMILY_NOTES, PALETTE_GROUPS, THEMES, THEME_COUNT, dataHref, neighbours, pairOf, themeHref, type Theme } from "../../data/themes";
+import { MARKETPLACE_URL, SITE_URL } from "../../data/site";
+
+export const getStaticPaths = (() => THEMES.map((theme) => ({ params: { id: theme.id }, props: { theme } }))) satisfies GetStaticPaths;
+
+const { theme } = Astro.props as { theme: Theme };
+const pair = pairOf(theme);
+const { prev, next } = neighbours(theme);
+const siblings = THEMES.filter((t) => t.family === theme.family && t.id !== theme.id && t.id !== pair?.id);
+const kind = theme.light ? "light" : "dark";
+const words = theme.short.split(" ");
+const last = words.pop()!;
+const lead = words.join(" ");
+const note = FAMILY_NOTES[theme.family] ?? "";
+
+const title = `${theme.name}: a ${kind} VS Code theme`;
+const description = `${theme.name} is a ${kind} color theme for VS Code in the ${theme.family} family. See the SQL and TypeScript preview, every hex value, and the settings.json line to use it. One of ${THEME_COUNT} themes in NexQL Themes.`;
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "NexQL Themes", item: `${SITE_URL}/` },
+      { "@type": "ListItem", position: 2, name: theme.family, item: `${SITE_URL}/#gallery` },
+      { "@type": "ListItem", position: 3, name: theme.name, item: `${SITE_URL}${themeHref(theme)}` },
+    ],
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <SiteHeader />
+
+  <main id="main" tabindex="-1">
+    <section class="head wrap">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href="/#gallery">All themes</a><span aria-hidden="true">/</span><span>{theme.family}</span>
+      </nav>
+      <p class="pill"><span class="live-dot" aria-hidden="true"></span>{theme.family} · {theme.light ? "Light" : "Dark"}</p>
+      <h1>
+        {lead && <>NexQL {lead}{" "}</>}{!lead && <>NexQL{" "}</>}<span class="serif-em grad-text">{last}</span>
+      </h1>
+      <p class="lede">
+        A {kind} theme in the {theme.family} family. {note}
+        {pair && <> Its {pair.light ? "light" : "dark"} twin is <a href={themeHref(pair)}>{pair.short}</a>.</>}
+      </p>
+      <div class="cta">
+        <a class="btn btn-primary" href={MARKETPLACE_URL}>Install from Marketplace</a>
+        <a class="btn" href="#install">Use this theme</a>
+        <a class="btn btn-ghost" href={dataHref(theme)}>Theme file (JSON)</a>
+      </div>
+    </section>
+
+    <section class="wrap block" aria-labelledby="preview-h">
+      <h2 id="preview-h" class="visually-hidden">Preview</h2>
+      <Editor theme={theme} />
+    </section>
+
+    <section class="wrap block" id="palette" aria-labelledby="palette-h">
+      <p class="mono-label">Palette</p>
+      <h2 id="palette-h">Every <span class="serif-em">colour</span> in the preview.</h2>
+      <p class="lede">Hex values as they appear in the theme file. Eight-digit values include transparency.</p>
+      {
+        PALETTE_GROUPS.map((g) => (
+          <div class="group">
+            <h3>{g.title}</h3>
+            <ul class="swatches">
+              {g.items.map((it) => (
+                <li>
+                  <span class="chip" style={`--c:${theme[it.key]}`} aria-hidden="true" />
+                  <span class="lbl">{it.label}</span>
+                  <code>{theme[it.key].toUpperCase()}</code>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </section>
+
+    <section class="wrap block" id="install" aria-labelledby="install-h">
+      <p class="mono-label">Install</p>
+      <h2 id="install-h">Use <span class="serif-em">{theme.short}</span> in VS Code.</h2>
+      <InstallSteps theme={theme} />
+    </section>
+
+    <section class="wrap block" aria-labelledby="more-h">
+      <p class="mono-label">More like this</p>
+      <h2 id="more-h">Nearby <span class="serif-em">themes</span>.</h2>
+
+      {
+        pair && (
+          <a class="pair-card" href={themeHref(pair)}>
+            <div class="pair-ed"><Editor theme={pair} variant="mini" /></div>
+            <div>
+              <p class="mono-label">{pair.light ? "Light" : "Dark"} twin</p>
+              <p class="pair-name">{pair.name}</p>
+              <p class="small">Same hues, {pair.light ? "for daylight" : "for the evening"}.</p>
+            </div>
+          </a>
+        )
+      }
+
+      {
+        siblings.length > 0 && (
+          <>
+            <h3 class="sub">Also in {theme.family}</h3>
+            <ul class="sib">
+              {siblings.map((t) => (
+                <li>
+                  <a href={themeHref(t)}>
+                    <span class="dot" style={`background:${t.accent}`} aria-hidden="true" />
+                    {t.short}
+                    <span class="k">{t.light ? "Light" : "Dark"}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        )
+      }
+
+      <nav class="prevnext" aria-label="Previous and next theme">
+        <a href={themeHref(prev)}><span class="mono-label">Previous</span><b>← {prev.short}</b></a>
+        <a href={themeHref(next)} class="r"><span class="mono-label">Next</span><b>{next.short} →</b></a>
+      </nav>
+    </section>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .head {
+    padding-top: 48px;
+    padding-bottom: 28px;
+  }
+  .crumbs {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font: 500 13px/1 var(--font-mono);
+    color: var(--faint);
+    margin-bottom: 22px;
+  }
+  .head h1 {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 700;
+    margin: 20px 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .head h1 .serif-em {
+    font-size: 1.08em;
+    padding-right: 0.06em;
+  }
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+  }
+  .block {
+    padding-top: 40px;
+    padding-bottom: 24px;
+  }
+  .block h2 {
+    font-size: clamp(26px, 3.2vw, 38px);
+    font-weight: 700;
+    margin: 8px 0 10px;
+  }
+  .block h2 .serif-em {
+    color: var(--accent);
+    font-size: 1.1em;
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .group {
+    margin-top: 28px;
+  }
+  .group h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .swatches {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+    gap: 10px;
+  }
+  .swatches li {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    grid-template-areas: "chip lbl" "chip hex";
+    column-gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
+    min-width: 0;
+  }
+  .chip {
+    grid-area: chip;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: linear-gradient(var(--c), var(--c)), repeating-conic-gradient(var(--line-2) 0 25%, var(--bg) 0 50%) 0 0 / 10px 10px;
+    box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.55);
+  }
+  .lbl {
+    grid-area: lbl;
+    font-size: 14.5px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .swatches code {
+    grid-area: hex;
+    justify-self: start;
+    font-size: 12.5px;
+    color: var(--muted);
+    border: 0;
+    background: transparent;
+    padding: 0;
+  }
+  .sub {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 32px 0 12px;
+  }
+  .small {
+    color: var(--muted);
+    font-size: 14.5px;
+  }
+  .pair-card {
+    display: grid;
+    grid-template-columns: minmax(0, 260px) 1fr;
+    gap: 20px;
+    align-items: center;
+    margin-top: 20px;
+    padding: 16px;
+    border: 1px solid;
+    border-color: var(--bevel-border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-2);
+    color: var(--fg);
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  .pair-card:hover {
+    text-decoration: none;
+    border-color: var(--accent);
+    box-shadow: var(--shadow-3);
+  }
+  .pair-name {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 4px 0;
+  }
+  @media (max-width: 560px) {
+    .pair-card {
+      grid-template-columns: 1fr;
+    }
+  }
+  .sib {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .sib a {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 8px 14px;
+    border: 1px solid;
+    border-color: var(--bevel-border);
+    border-radius: 10px;
+    background: var(--control-bg);
+    box-shadow: var(--control-shadow);
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .sib a:hover {
+    text-decoration: none;
+    box-shadow: var(--control-shadow-hover);
+    background: var(--control-bg-hover);
+  }
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.5);
+  }
+  .k {
+    font: 500 11.5px/1 var(--font-mono);
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .prevnext {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+  .prevnext a {
+    display: grid;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
+    color: var(--fg);
+    min-width: 0;
+  }
+  .prevnext a:hover {
+    text-decoration: none;
+    border-color: var(--accent);
+  }
+  .prevnext .r {
+    text-align: right;
+  }
+  .prevnext b {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+</style>

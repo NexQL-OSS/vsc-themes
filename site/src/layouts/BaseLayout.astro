@@ -1,0 +1,132 @@
+---
+import "../styles/brand.css";
+import "../styles/site.css";
+import { SITE_URL, REPO_URL, NEXQL_URL, MCP_URL, MARKETPLACE_URL, OPEN_VSX_URL, EXTENSION_ID } from "../data/site";
+import { THEME_COUNT } from "../data/themes";
+
+interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  /** Extra JSON-LD nodes for this page. */
+  jsonLd?: Record<string, unknown>[];
+  ogImage?: string;
+}
+
+const { title, description, canonical, jsonLd: extraLd = [], ogImage = `${SITE_URL}/assets/logo.png` } = Astro.props;
+
+const site = Astro.site?.href?.replace(/\/$/, "") ?? SITE_URL;
+const pageUrl = canonical ?? new URL(Astro.url.pathname, site).href;
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "NexQL Themes",
+    url: site,
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "NexQL Themes",
+    applicationCategory: "DeveloperApplication",
+    operatingSystem: "Windows, macOS, Linux",
+    description: `${THEME_COUNT} color themes for VS Code, built for SQL and everything else you edit. One extension, ${EXTENSION_ID}.`,
+    url: site,
+    downloadUrl: MARKETPLACE_URL,
+    keywords: "vs code themes, color theme, sql theme, postgres, dark theme, light theme, oled",
+    sameAs: [REPO_URL, NEXQL_URL, MCP_URL, MARKETPLACE_URL, OPEN_VSX_URL],
+  },
+  ...extraLd,
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href={pageUrl} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NexQL Themes" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <link rel="icon" type="image/png" href="/assets/logo.png" />
+    <meta name="theme-color" content="#07080e" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f4f2f8" media="(prefers-color-scheme: light)" />
+    <meta id="theme-color-force" name="theme-color" content="#07080e" media="not all" />
+    <script is:inline>
+      (function () {
+        var KEY = "nexql-theme";
+        var stored = null;
+        try {
+          stored = localStorage.getItem(KEY);
+        } catch (e) {
+          stored = null;
+        }
+        if (stored !== "light" && stored !== "dark" && stored !== "system") stored = "system";
+        var mq = window.matchMedia("(prefers-color-scheme: light)");
+        function paint(choice) {
+          var root = document.documentElement;
+          root.setAttribute("data-theme-choice", choice);
+          if (choice === "system") root.removeAttribute("data-theme");
+          else root.setAttribute("data-theme", choice);
+          var theme = choice === "system" ? (mq.matches ? "light" : "dark") : choice;
+          var force = document.getElementById("theme-color-force");
+          if (!force) return;
+          if (choice === "system") {
+            force.setAttribute("media", "not all");
+          } else {
+            force.removeAttribute("media");
+            force.setAttribute("content", theme === "light" ? "#f4f2f8" : "#07080e");
+          }
+        }
+        paint(stored);
+        mq.addEventListener("change", function () {
+          if (document.documentElement.getAttribute("data-theme-choice") === "system") paint("system");
+        });
+        window.__nexqlSetTheme = function (choice) {
+          if (choice !== "light" && choice !== "dark" && choice !== "system") return;
+          try {
+            localStorage.setItem(KEY, choice);
+          } catch (e) {
+            /* private mode: the choice lasts for this page only */
+          }
+          paint(choice);
+        };
+      })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <slot />
+  </body>
+</html>

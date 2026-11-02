@@ -1,0 +1,66 @@
+---
+import { MARKETPLACE_URL, MCP_URL, NEXQL_URL, OPEN_VSX_URL, REPO_URL } from "../data/site";
+import { THEME_COUNT } from "../data/themes";
+---
+
+<footer class="site-footer">
+  <div class="ribbon"></div>
+  <div class="wrap cols">
+    <div>
+      <p class="name">NexQL Themes</p>
+      <p class="small">{THEME_COUNT} color themes for VS Code. MIT licensed.</p>
+    </div>
+    <nav aria-label="Footer">
+      <a href={NEXQL_URL}>NexQL for VS Code</a>
+      <a href={MCP_URL}>NexQL MCP</a>
+      <a href={MARKETPLACE_URL}>Marketplace</a>
+      <a href={OPEN_VSX_URL}>Open VSX</a>
+      <a href={REPO_URL}>GitHub</a>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 96px;
+    background: var(--bg-deep);
+    border-top: 1px solid var(--line);
+    position: relative;
+  }
+  .ribbon {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    border-radius: 0;
+  }
+  .cols {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 24px;
+    padding-top: 36px;
+    padding-bottom: 48px;
+  }
+  .name {
+    font-weight: 700;
+  }
+  .small {
+    color: var(--faint);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+  }
+  nav a {
+    color: var(--muted);
+    font-size: 14.5px;
+  }
+  nav a:hover {
+    color: var(--fg);
+  }
+</style>

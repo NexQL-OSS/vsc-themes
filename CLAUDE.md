@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-NexQL Themes is a VS Code color-theme extension. There is no app code — only theme JSON, a small ESM build/validate toolchain, and the extension manifest.
+NexQL Themes is a VS Code color-theme extension. The extension has no app code — only theme JSON, a small ESM build/validate toolchain, and the extension manifest. The marketing site lives separately in `site/` (Astro).
 
 ## Build & validate
 
@@ -34,8 +34,17 @@ Consequences:
 - `name` in the JSON must equal the `label` in `package.json`; labels must be unique; `uiTheme` ∈ `vs`/`vs-dark`/`hc-black`/`hc-light`.
 - Required preview keys come from `PREVIEW_COLOR_KEYS`; contrast pairs from `src/color-keys.mjs` must clear their minimum ratio.
 
+## Marketing site (`site/`)
+
+Astro 7, static, no client framework. Dev: `npm --prefix site run dev` (port 4322). Build: `npm --prefix site run build` → `site/dist`.
+
+- `scripts/build-site.mjs` (run by the site's `prebuild`/`predev`) writes `themes/manifest.json`, copies `themes/*.json` into `site/public/themes/` (served at `/themes/<file>.json`, CORS `*`; `nexql.astrx.dev` fetches these cross-origin, so keep the URLs), and writes `site/src/data/generated/themes.json` with `parseThemeSummary` results. All three are gitignored. It **fails the build** if the theme count differs between `DIRECTIONS`, `package.json` `contributes.themes` and `themes/`.
+- Pages: `/` (gallery, families, syntax, install; the live "Preview a theme" repaint is opt-in) and `/themes/<id>/` per theme. A new family needs an entry in `FAMILY_ORDER` in `site/src/data/themes.ts` or the build throws.
+- `site/src/styles/brand.css` is a vendored copy of `mcp/site/src/styles/theme.css`. Do not edit it; run `npm --prefix site run sync-brand` to refresh it. Site-specific styles go in `site.css` or scoped `<style>` blocks.
+- Deploy: Vercel via `vercel.json` (output `site/dist`). `site/**` is excluded from the .vsix by `.vscodeignore`.
+
 ## Conventions
 
-- ESM only (`.mjs`), JSDoc type annotations — no TypeScript, no `.ts` files.
+- ESM only (`.mjs`), JSDoc type annotations in the extension toolchain (repo root, `src/`, `scripts/`) — no TypeScript there. Inside `site/` (the Astro project) TypeScript in `.astro`/`.ts` is fine.
 - Commit straight to `main` (solo repo, no PR flow).
 - Release is manual and loosely tracked — bump `package.json` version and prepend a `CHANGELOG.md` entry when it matters. (Note: `package.json` version and CHANGELOG headings have drifted historically; don't assume they match.)

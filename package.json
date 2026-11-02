@@ -236,7 +236,7 @@
   "scripts": {
     "generate": "node scripts/generate-previews.mjs",
     "validate": "node scripts/validate-themes.mjs",
-    "build:site": "node scripts/build-site.mjs",
+    "build:site": "npm --prefix site run build",
     "compile": "npm run generate && npm run validate",
     "vscode:prepublish": "npm run compile",
     "watch": "npm run compile"

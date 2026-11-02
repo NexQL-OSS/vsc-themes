@@ -1,0 +1,33 @@
+/* Site-wide rules that are not part of the vendored brand layer (brand.css). */
+
+main {
+  /* Decorative backgrounds bleed past their boxes. clip, not hidden, so sticky still works. */
+  overflow-x: clip;
+}
+
+kbd {
+  font-family: var(--font-mono);
+}
+
+.lede {
+  color: var(--muted);
+  font-size: 17.5px;
+  max-width: 40em;
+}
+
+.btn-ghost {
+  background: transparent;
+  box-shadow: none;
+  border-color: var(--line-2);
+}
+.btn-ghost:hover {
+  background: var(--hover);
+  box-shadow: none;
+}
+
+/* Native form controls pick up the page palette, including during a live repaint. */
+select,
+input[type="text"],
+input[type="search"] {
+  font: inherit;
+}

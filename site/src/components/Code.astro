@@ -1,0 +1,43 @@
+---
+/** A command or snippet with a copy button. `html` may hold <span class="p"> (prompt) / <span class="c"> (comment), which Copy leaves out. */
+interface Props {
+  html: string;
+  label?: string;
+}
+const { html, label = "Copy" } = Astro.props;
+---
+
+<figure class="code">
+  <pre set:html={html} />
+  <button class="copy" type="button" aria-label={label}>Copy</button>
+</figure>
+
+<script>
+  async function copyText(text: string, btn: HTMLElement) {
+    try {
+      await navigator.clipboard.writeText(text);
+      btn.dataset.done = "";
+      btn.textContent = "Copied";
+      setTimeout(() => {
+        delete btn.dataset.done;
+        btn.textContent = "Copy";
+      }, 1600);
+    } catch {
+      btn.textContent = "Select and copy";
+    }
+  }
+  document.querySelectorAll<HTMLButtonElement>(".code .copy").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      const pre = btn.parentElement?.querySelector("pre");
+      if (!pre) return;
+      const clone = pre.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll(".p, .c").forEach((n) => n.remove());
+      const text = (clone.textContent ?? "")
+        .split("\n")
+        .map((l) => l.trimEnd())
+        .filter((l) => l.trim() !== "")
+        .join("\n");
+      copyText(text, btn);
+    }),
+  );
+</script>

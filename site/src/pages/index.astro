@@ -1,0 +1,1435 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import Editor from "../components/Editor.astro";
+import InstallSteps from "../components/InstallSteps.astro";
+import {
+  DEFAULT_THEME,
+  FAMILIES,
+  PAIRS,
+  SYNTAX_ROLES,
+  THEMES,
+  THEME_COUNT,
+  clientTheme,
+  previewStyle,
+  themeHref,
+  type Theme,
+} from "../data/themes";
+import { MARKETPLACE_URL, MCP_URL, NEXQL_URL, OPEN_VSX_URL, REPO_URL } from "../data/site";
+
+const STOPS = [
+  { id: "gallery", label: "Gallery", minutes: `${THEME_COUNT} themes` },
+  { id: "families", label: "Families", minutes: `${PAIRS.length} pairs` },
+  { id: "syntax", label: "Syntax", minutes: "8 colours" },
+  { id: "install", label: "Install", minutes: "1 minute" },
+];
+const pad = (n: number) => String(n).padStart(2, "0");
+const stopNo = (id: string) => pad(STOPS.findIndex((s) => s.id === id) + 1);
+const nextOf = (id: string) => STOPS[STOPS.findIndex((s) => s.id === id) + 1];
+const words = (t: Theme) => `${t.family} ${t.name}`.toLowerCase();
+const dflt = DEFAULT_THEME;
+const darkCount = THEMES.filter((t) => !t.light).length;
+const SUGGESTIONS = [
+  "WHERE type = 'dark'",
+  "WHERE type = 'light'",
+  "WHERE family = 'Claudy'",
+  "WHERE family = 'Sentinel'",
+  "WHERE family = 'Seasonal'",
+  "WHERE name LIKE 'Postgres%'",
+];
+
+const description = `${THEME_COUNT} color themes for VS Code in one extension, from warm clay days to pure-black OLED nights. Keywords, functions, tables and columns each get their own colour. Preview any theme in your browser, then install.`;
+---
+
+<BaseLayout title={`NexQL Themes: ${THEME_COUNT} VS Code color themes for SQL`} description={description}>
+  <SiteHeader />
+
+  <main id="main" tabindex="-1">
+    <!-- Start -->
+    <section class="hero wrap" id="top">
+      <div class="hero-copy">
+        <p class="pill"><span class="live-dot" aria-hidden="true"></span>{THEME_COUNT} themes · {FAMILIES.length} families · one extension</p>
+        <h1>
+          {THEME_COUNT} VS Code themes that make SQL <span class="serif-em grad-text">readable</span>.
+        </h1>
+        <p class="lede">
+          NexQL Themes is a single extension with {darkCount} dark and {THEME_COUNT - darkCount} light themes. Keywords, functions, tables and columns each get their
+          own colour, and the text pairs are checked for contrast. Pick a theme in the preview to see it before you install.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href={MARKETPLACE_URL}>Install from Marketplace</a>
+          <a class="btn" href="#gallery">Browse the gallery</a>
+        </div>
+        <p class="also">Also on <a href={OPEN_VSX_URL}>Open VSX</a>. Made to sit next to <a href={NEXQL_URL}>NexQL for VS Code</a> and <a href={MCP_URL}>NexQL MCP</a>.</p>
+      </div>
+
+      <aside class="ticket" id="preview" aria-label="Preview a theme">
+        <div class="ticket-head">
+          <span class="mono-label">Preview a theme</span>
+          <span class="mono-label" aria-live="polite" data-theme-kind>{dflt.light ? "Light" : "Dark"} · {dflt.family}</span>
+        </div>
+
+        <div class="picker" data-picker hidden>
+          <button type="button" class="step" data-step="-1" aria-label="Previous theme">‹</button>
+          <label class="sr" for="pick">Theme</label>
+          <select id="pick" data-pick>
+            {
+              FAMILIES.map((f) => (
+                <optgroup label={f.name}>
+                  {f.themes.map((t) => (
+                    <option value={t.id} selected={t.id === dflt.id}>{t.short}</option>
+                  ))}
+                </optgroup>
+              ))
+            }
+          </select>
+          <button type="button" class="step" data-step="1" aria-label="Next theme">›</button>
+          <button type="button" class="tour-btn" data-tour aria-pressed="false" title="Step through the themes automatically">
+            <span class="tour-dot" aria-hidden="true"></span>Tour: <span data-tour-label>off</span>
+          </button>
+        </div>
+
+        <div data-live-scope style={previewStyle(dflt)}>
+          <Editor theme={dflt} live />
+        </div>
+
+        <div class="swatches" role="radiogroup" aria-label="Themes" data-swatches hidden>
+          {
+            THEMES.map((t) => (
+              <button
+                type="button"
+                role="radio"
+                aria-checked={t.id === dflt.id ? "true" : "false"}
+                tabindex={t.id === dflt.id ? 0 : -1}
+                data-id={t.id}
+                aria-label={t.name}
+                title={t.short}
+                style={`--s-bg:${t.bg};--s-accent:${t.accent};--s-edge:${t.border}`}
+              >
+                <i />
+              </button>
+            ))
+          }
+        </div>
+
+        <div class="ticket-foot">
+          <label class="repaint" data-repaint-wrap hidden>
+            <input type="checkbox" data-repaint />
+            <span>Repaint this page</span>
+          </label>
+          <a href={themeHref(dflt)} data-theme-link>Open <span data-theme-short>{dflt.short}</span> →</a>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Mobile progress, under the header -->
+    <div class="mbar">
+      <div class="mbar-fill"></div>
+      <span class="mbar-label">Stop 01 of {pad(STOPS.length)} · {STOPS[0].label}</span>
+    </div>
+
+    <div class="tour wrap">
+      <nav class="rail" aria-label="Page sections">
+        <div class="track"><div class="track-fill"></div></div>
+        <ol>
+          {
+            STOPS.map((s, i) => (
+              <li>
+                <a href={`#${s.id}`} data-stop={s.id}>
+                  <span class="dot" />
+                  <span class="rail-text">
+                    <span class="rail-no">Stop {pad(i + 1)}</span>
+                    <span class="rail-label">{s.label}</span>
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+        <p class="rail-app">Previewing <b data-theme-short>{dflt.short}</b> · <a href="#preview">change</a></p>
+      </nav>
+
+      <div class="stops">
+        <!-- 01 Gallery -->
+        <section class="stop" id="gallery">
+          <header class="stop-head">
+            <span class="stop-no">Stop <b>{stopNo("gallery")}</b></span>
+            <span class="stop-time">{STOPS[0].minutes}</span>
+          </header>
+          <h2>Every theme in its own <span class="serif-em">colours</span>.</h2>
+          <p class="lede">
+            Each window below is drawn with that theme's real editor colours, grouped by family. Open a theme for its full palette, or send it to the preview at the top.
+          </p>
+
+          <div class="filter">
+            <label class="prompt" for="q">nexql=#</label>
+            <input id="q" type="text" list="q-list" placeholder="WHERE type = 'dark'" spellcheck="false" autocomplete="off" aria-describedby="q-count" />
+            <datalist id="q-list">{SUGGESTIONS.map((s) => <option value={s} />)}</datalist>
+            <span class="count" id="q-count" aria-live="polite">→ <b data-count>{THEME_COUNT}</b> of {THEME_COUNT}</span>
+            <button type="button" class="clear" data-clear hidden>Clear</button>
+          </div>
+
+          <div class="families">
+            {
+              FAMILIES.map((f) => (
+                <section class="family" data-family aria-labelledby={`f-${f.name.replace(/\W+/g, "-").toLowerCase()}`}>
+                  <header class="family-head">
+                    <h3 id={`f-${f.name.replace(/\W+/g, "-").toLowerCase()}`}>{f.name}</h3>
+                    <span class="family-n">{f.themes.length}</span>
+                    <p>{f.note}</p>
+                  </header>
+                  <div class="cards">
+                    {f.themes.map((t) => (
+                      <article class="card" data-card data-words={words(t)} data-kind={t.light ? "light" : "dark"}>
+                        <Editor theme={t} variant="mini" />
+                        <div class="meta">
+                          <span class="dot-accent" style={`background:${t.accent}`} aria-hidden="true" />
+                          <a class="name" href={themeHref(t)}>{t.short}</a>
+                          <span class="kind">{t.light ? "Light" : "Dark"}</span>
+                        </div>
+                        <button type="button" class="try" data-try={t.id}>Preview</button>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              ))
+            }
+          </div>
+          <p class="empty" data-empty hidden>0 rows returned. Try <code>WHERE type = 'light'</code>.</p>
+
+          <a class="next" href={`#${nextOf("gallery").id}`}>Next stop <b>{nextOf("gallery").label}</b> <span aria-hidden="true">→</span></a>
+        </section>
+
+        <!-- 02 Families -->
+        <section class="stop" id="families">
+          <header class="stop-head">
+            <span class="stop-no">Stop <b>{stopNo("families")}</b></span>
+            <span class="stop-time">{STOPS[1].minutes}</span>
+          </header>
+          <h2>Day shift, <span class="serif-em">night</span> shift.</h2>
+          <p class="lede">
+            {PAIRS.length} families ship a matched light and dark pair with the same hues, so your editor looks the same at stand-up and at midnight. VS Code can switch between them on its own.
+          </p>
+
+          <div class="pairs">
+            {
+              PAIRS.map((p) => (
+                <div class="pair">
+                  <h3>{p.family}</h3>
+                  <div class="panes">
+                    {[p.day, p.night].map((t) => (
+                      <div class="pane">
+                        <Editor theme={t} variant="mini" />
+                        <div class="meta">
+                          <span class="kind">{t.light ? "Light" : "Dark"}</span>
+                          <a class="name" href={themeHref(t)}>{t.short}</a>
+                          <button type="button" class="try" data-try={t.id}>Preview</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+
+          <h3 class="sub">Follow the system</h3>
+          <p class="small">To switch with your operating system, turn on automatic detection and name a theme for each side:</p>
+          <figure class="code">
+            <pre><span class="c">// settings.json</span>
+"window.autoDetectColorScheme": true,
+"workbench.preferredLightColorTheme": "NexQL Claudy Day",
+"workbench.preferredDarkColorTheme": "NexQL Claudy Night"</pre>
+            <button class="copy" type="button" aria-label="Copy settings">Copy</button>
+          </figure>
+
+          <a class="next" href={`#${nextOf("families").id}`}>Next stop <b>{nextOf("families").label}</b> <span aria-hidden="true">→</span></a>
+        </section>
+
+        <!-- 03 Syntax -->
+        <section class="stop" id="syntax">
+          <header class="stop-head">
+            <span class="stop-no">Stop <b>{stopNo("syntax")}</b></span>
+            <span class="stop-time">{STOPS[2].minutes}</span>
+          </header>
+          <h2>Each part of a query gets its own <span class="serif-em">voice</span>.</h2>
+          <p class="lede">
+            Keywords, functions, types, strings and numbers are told apart at a glance, so a long query stays readable. This is <b data-theme-short>{dflt.short}</b>; change the preview at the top and it follows.
+          </p>
+
+          <div class="syntax" data-live-scope style={previewStyle(dflt)}>
+            <Editor theme={dflt} live />
+            <ul class="legend">
+              {
+                SYNTAX_ROLES.map((r) => (
+                  <li>
+                    <span class="sw" style={`background:var(--p-${r.key})`} aria-hidden="true" />
+                    <span class="role">{r.label}</span>
+                    <code class="hex" data-hex={r.key}>{dflt[r.key].toUpperCase()}</code>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <a class="next" href={`#${nextOf("syntax").id}`}>Next stop <b>{nextOf("syntax").label}</b> <span aria-hidden="true">→</span></a>
+        </section>
+
+        <!-- 04 Install -->
+        <section class="stop" id="install">
+          <header class="stop-head">
+            <span class="stop-no">Stop <b>{stopNo("install")}</b></span>
+            <span class="stop-time">{STOPS[3].minutes}</span>
+          </header>
+          <h2>Install once, then pick <span class="serif-em">any</span> of them.</h2>
+          <p class="lede">All {THEME_COUNT} themes come in the same extension, so there is nothing else to download.</p>
+
+          <InstallSteps theme={dflt} live />
+
+          <div class="hero-cta">
+            <a class="btn btn-primary" href={MARKETPLACE_URL}>Install from Marketplace</a>
+            <a class="btn" href="vscode:extension/ric-v.nexql-themes">Open in VS Code</a>
+            <a class="btn btn-ghost" href={OPEN_VSX_URL}>Open VSX</a>
+          </div>
+
+          <a class="next" href="#arrived">Final stop <b>You're set</b> <span aria-hidden="true">→</span></a>
+        </section>
+
+        <!-- Arrived -->
+        <section class="arrived" id="arrived">
+          <div class="ribbon"></div>
+          <h2>You're <span class="serif-em grad-text">set</span>.</h2>
+          <p class="lede">That's every theme and the install. A few answers, in case something looks off.</p>
+          <div class="faq">
+            <details>
+              <summary>How do I go back to my old theme?</summary>
+              <p>Run <b>Preferences: Color Theme</b> from the Command Palette and choose it. Uninstalling the extension also removes all {THEME_COUNT} themes.</p>
+            </details>
+            <details>
+              <summary>Do the themes change my settings?</summary>
+              <p>No. The extension only adds colour themes. Nothing changes until you pick one, and your own <code>settings.json</code> stays as it is.</p>
+            </details>
+            <details>
+              <summary>Can I tweak a colour?</summary>
+              <p>Yes. Use <code>workbench.colorCustomizations</code> and <code>editor.tokenColorCustomizations</code> in <code>settings.json</code>; they override any theme. The theme pages list every hex value to start from.</p>
+            </details>
+            <details>
+              <summary>Why does the page change colour when I preview a theme?</summary>
+              <p>Only if you tick <b>Repaint this page</b> in the preview. Otherwise this site keeps its own palette and only the preview windows change.</p>
+            </details>
+          </div>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href={MARKETPLACE_URL}>Install from Marketplace</a>
+            <a class="btn" href={NEXQL_URL}>NexQL for VS Code</a>
+            <a class="btn btn-ghost" href={`${REPO_URL}/issues`}>Report a problem</a>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="previewing" data-chip hidden>
+      <span>Previewing <b data-theme-short>{dflt.short}</b></span>
+      <button type="button" data-reset>Reset</button>
+    </div>
+  </main>
+
+  <SiteFooter />
+  <script type="application/json" id="theme-data" set:html={JSON.stringify(THEMES.map(clientTheme))} />
+</BaseLayout>
+
+<style>
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    display: grid;
+    gap: 40px;
+    padding-top: 56px;
+    padding-bottom: 72px;
+    align-items: center;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: -48px -8% -20px;
+    background-image: var(--dot-grid);
+    background-size: 22px 22px;
+    mask-image: radial-gradient(ellipse at 22% 35%, #000 0%, transparent 68%);
+    -webkit-mask-image: radial-gradient(ellipse at 22% 35%, #000 0%, transparent 68%);
+    pointer-events: none;
+  }
+  .hero > * {
+    min-width: 0;
+  }
+  @media (min-width: 960px) {
+    .hero {
+      grid-template-columns: 1fr 1.05fr;
+      padding-top: 80px;
+      padding-bottom: 96px;
+      gap: 56px;
+    }
+  }
+  .hero h1 {
+    font-size: clamp(36px, 5.4vw, 62px);
+    font-weight: 700;
+    margin: 22px 0 20px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 .serif-em {
+    font-size: 1.08em;
+    padding-right: 0.06em;
+  }
+  .hero .lede {
+    font-size: clamp(17px, 1.6vw, 19px);
+  }
+  .hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+  }
+  .also {
+    margin-top: 20px;
+    color: var(--faint);
+    font-size: 14.5px;
+  }
+
+  /* Ticket: the live preview, as a boarding pass */
+  .ticket {
+    position: relative;
+    background: var(--ticket-bg);
+    border: 1px solid var(--edge);
+    border-radius: 18px;
+    padding: 20px 20px 16px;
+    box-shadow: var(--shadow-ticket);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  .ticket::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 18px;
+    padding: 1px;
+    background: var(--nex-grad);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: var(--ticket-edge);
+    pointer-events: none;
+  }
+  .ticket-head,
+  .ticket-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .ticket-foot {
+    border-top: 1px dashed var(--line-2);
+    padding-top: 12px;
+    font-size: 14.5px;
+  }
+  .picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .picker[hidden],
+  .swatches[hidden],
+  .repaint[hidden],
+  [data-chip][hidden] {
+    display: none;
+  }
+  .picker select {
+    flex: 1 1 160px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line-2);
+    background: var(--well);
+    box-shadow: var(--well-shadow);
+    color: var(--fg);
+  }
+  .step,
+  .tour-btn,
+  .try,
+  .clear,
+  [data-reset] {
+    appearance: none;
+    border: 1px solid;
+    border-color: var(--bevel-border);
+    background: var(--control-bg);
+    box-shadow: var(--control-shadow);
+    color: var(--fg);
+    font: 500 13px/1 var(--font-mono);
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+  .step:hover,
+  .tour-btn:hover,
+  .try:hover,
+  .clear:hover,
+  [data-reset]:hover {
+    background: var(--control-bg-hover);
+    box-shadow: var(--control-shadow-hover);
+  }
+  .step:active,
+  .tour-btn:active,
+  .try:active,
+  .clear:active,
+  [data-reset]:active,
+  .tour-btn[aria-pressed="true"] {
+    box-shadow: var(--control-shadow-active);
+  }
+  .step {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+  .tour-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 14px;
+  }
+  .tour-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--faint);
+  }
+  .tour-btn[aria-pressed="true"] .tour-dot {
+    background: var(--nex-amber);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .swatches {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    padding: 4px 2px 8px;
+    scrollbar-width: thin;
+  }
+  .swatches button {
+    appearance: none;
+    flex: none;
+    width: 30px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+  .swatches i {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    background: var(--s-bg);
+    border: 1px solid var(--line-2);
+    position: relative;
+    transition: transform 0.15s;
+  }
+  .swatches i::after {
+    content: "";
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--s-accent);
+  }
+  .swatches button:hover i {
+    transform: scale(1.12);
+  }
+  .swatches button[aria-checked="true"] i {
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+  }
+  .repaint {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .repaint input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+  }
+
+  /* ---------- Mobile progress ---------- */
+  .mbar {
+    position: sticky;
+    top: var(--header-h);
+    z-index: 40;
+    background: color-mix(in srgb, var(--bg-deep) 92%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    padding: 9px 16px 10px;
+    font: 500 12.5px/1.2 var(--font-mono);
+    color: var(--muted);
+  }
+  .mbar-fill {
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    height: 2px;
+    width: 0;
+    background: var(--nex-grad);
+    transition: width 0.2s;
+  }
+  @media (min-width: 960px) {
+    .mbar {
+      display: none;
+    }
+  }
+
+  /* ---------- Layout with the rail ---------- */
+  .tour {
+    display: grid;
+    gap: 40px;
+  }
+  @media (min-width: 960px) {
+    .tour {
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 56px;
+    }
+  }
+  .rail {
+    display: none;
+  }
+  @media (min-width: 960px) {
+    .rail {
+      display: block;
+      position: sticky;
+      top: calc(var(--header-h) + 40px);
+      align-self: start;
+    }
+  }
+  .rail ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+  .track {
+    position: absolute;
+    left: 8px;
+    top: 14px;
+    width: 3px;
+    height: calc(var(--rail-h, 300px) - 28px);
+    background: var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .track-fill {
+    width: 100%;
+    height: 0;
+    background: var(--nex-grad-v);
+    background-size: 100% var(--rail-h, 300px);
+    transition: height 0.15s linear;
+  }
+  .rail a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 0;
+    color: var(--faint);
+    position: relative;
+    z-index: 1;
+  }
+  .rail a:hover {
+    text-decoration: none;
+    color: var(--fg);
+  }
+  .dot {
+    width: 19px;
+    height: 19px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 3px solid var(--line-2);
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+  .rail a.done .dot {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+  .rail a.active {
+    color: var(--fg);
+    background: var(--rail-active);
+    border-radius: 10px;
+  }
+  .rail a.active .dot {
+    border-color: var(--accent);
+    background: var(--bg);
+    box-shadow: var(--accent-glow);
+  }
+  .rail-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+  }
+  .rail-no {
+    font: 500 11px/1.4 var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+  .rail-label {
+    font-size: 14.5px;
+    font-weight: 500;
+  }
+  .rail-app {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-size: 13.5px;
+    color: var(--faint);
+  }
+  .rail-app b {
+    color: var(--fg);
+    font-weight: 600;
+  }
+
+  /* ---------- Stops ---------- */
+  .stops {
+    min-width: 0;
+  }
+  .stop {
+    position: relative;
+    padding: 8px 0 80px;
+    margin-bottom: 80px;
+    border-bottom: 1px solid var(--line);
+  }
+  .stop-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .stop-no {
+    font: 500 13px/1 var(--font-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .stop-no b {
+    font: italic 400 30px/1 var(--font-serif);
+    letter-spacing: 0;
+    color: var(--accent);
+    text-transform: none;
+  }
+  .stop-time {
+    font: 500 12px/1 var(--font-mono);
+    color: var(--faint);
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    padding: 5px 9px;
+  }
+  .stop h2,
+  .arrived h2 {
+    font-size: clamp(28px, 3.6vw, 42px);
+    font-weight: 700;
+    margin-bottom: 12px;
+    max-width: 22em;
+  }
+  .stop h2 .serif-em,
+  .arrived h2 .serif-em {
+    color: var(--accent);
+    font-size: 1.1em;
+  }
+  .arrived h2 .serif-em.grad-text {
+    color: transparent;
+  }
+  .sub {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 36px 0 8px;
+  }
+  .small {
+    color: var(--muted);
+    font-size: 14.5px;
+    max-width: 46em;
+  }
+  .small + .code {
+    margin-top: 14px;
+  }
+  .next {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 40px;
+    padding: 12px 18px;
+    border-radius: 999px;
+    border: 1px solid;
+    border-color: var(--bevel-border);
+    color: var(--muted);
+    font-size: 15px;
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
+    transition: border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+  .next b {
+    color: var(--fg);
+  }
+  .next:hover {
+    text-decoration: none;
+    border-color: var(--accent);
+    color: var(--fg);
+    box-shadow: var(--shadow-2);
+    transform: translateY(var(--btn-lift));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .next:hover {
+      transform: none;
+    }
+  }
+
+  /* ---------- Gallery ---------- */
+  .filter {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    margin-top: 28px;
+    padding: 8px 10px 8px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--line-2);
+    background: var(--well);
+    box-shadow: var(--well-shadow);
+    font-family: var(--font-mono);
+  }
+  .prompt {
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .filter input {
+    flex: 1 1 200px;
+    min-width: 0;
+    min-height: 40px;
+    border: 0;
+    background: transparent;
+    color: var(--fg);
+    font: 500 14px/1 var(--font-mono);
+  }
+  .filter input:focus-visible {
+    outline: none;
+  }
+  .filter:focus-within {
+    border-color: var(--accent);
+    box-shadow: var(--well-shadow), var(--btn-focus-shadow);
+  }
+  .count {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .count b {
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .clear {
+    padding: 8px 12px;
+  }
+  .clear[hidden] {
+    display: none;
+  }
+  .families {
+    margin-top: 36px;
+    display: grid;
+    gap: 40px;
+  }
+  .family[hidden] {
+    display: none;
+  }
+  .family-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    margin-bottom: 14px;
+  }
+  .family-head h3 {
+    font-size: 21px;
+    font-weight: 700;
+  }
+  .family-n {
+    font: 500 12px/1 var(--font-mono);
+    color: var(--faint);
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    padding: 4px 8px;
+  }
+  .family-head p {
+    flex-basis: 100%;
+    color: var(--muted);
+    font-size: 14.5px;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+    gap: 14px;
+  }
+  .card {
+    display: grid;
+    gap: 10px;
+    padding: 10px 10px 12px;
+    border: 1px solid;
+    border-color: var(--bevel-border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-2);
+    min-width: 0;
+  }
+  .card[hidden] {
+    display: none;
+  }
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .dot-accent {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    flex: none;
+    box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.5);
+  }
+  .name {
+    color: var(--fg);
+    font-weight: 600;
+    font-size: 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .kind {
+    font: 500 11.5px/1 var(--font-mono);
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    flex: none;
+  }
+  .card .meta .kind {
+    margin-left: auto;
+  }
+  .try {
+    padding: 9px 12px;
+    min-height: 36px;
+    justify-self: start;
+  }
+  .empty {
+    margin-top: 32px;
+    padding: 40px 16px;
+    text-align: center;
+    border: 1px dashed var(--line-2);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .empty[hidden] {
+    display: none;
+  }
+
+  /* ---------- Families ---------- */
+  .pairs {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: 14px;
+  }
+  .pair {
+    padding: 16px;
+    border: 1px solid;
+    border-color: var(--bevel-border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-2);
+    min-width: 0;
+  }
+  .pair h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .panes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .pane {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+    min-width: 0;
+  }
+  .pane .meta {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+  .pane .meta .kind {
+    order: -1;
+    flex-basis: 100%;
+  }
+  .pane .try {
+    margin-left: auto;
+    padding: 7px 10px;
+    min-height: 32px;
+  }
+  @media (max-width: 420px) {
+    .panes {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ---------- Syntax ---------- */
+  .syntax {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+  .syntax > :global(*) {
+    min-width: 0;
+  }
+  @media (min-width: 1100px) {
+    .syntax {
+      grid-template-columns: minmax(0, 1.5fr) minmax(240px, 1fr);
+    }
+  }
+  .legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+    gap: 8px;
+  }
+  @media (min-width: 1100px) {
+    .legend {
+      grid-template-columns: 1fr;
+    }
+  }
+  .legend li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
+  }
+  .sw {
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
+    flex: none;
+    box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.5);
+  }
+  .role {
+    font-weight: 500;
+    font-size: 14.5px;
+  }
+  .hex {
+    margin-left: auto;
+    font-size: 12.5px;
+    color: var(--muted);
+    border: 0;
+    background: transparent;
+    padding: 0;
+  }
+
+  /* ---------- Arrived ---------- */
+  .arrived {
+    position: relative;
+    padding: 40px 28px 36px;
+    border-radius: 20px;
+    border: 1px solid var(--edge);
+    background: var(--nex-grad-soft), var(--panel);
+    box-shadow: var(--shadow-3);
+    overflow: hidden;
+  }
+  .arrived > .ribbon {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    border-radius: 0;
+  }
+  .faq {
+    display: grid;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .faq details {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--bg);
+    padding: 0 16px;
+  }
+  .faq summary {
+    cursor: pointer;
+    padding: 13px 0;
+    font-weight: 500;
+  }
+  .faq details p {
+    padding-bottom: 14px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  @media (max-width: 719px) {
+    .arrived {
+      padding: 32px 18px 28px;
+    }
+  }
+
+  /* ---------- Previewing chip ---------- */
+  .previewing {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 45;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 8px 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    background: var(--panel);
+    box-shadow: var(--shadow-3);
+    font-size: 14px;
+  }
+  .previewing [data-reset] {
+    padding: 8px 12px;
+    min-height: 34px;
+  }
+</style>
+
+<script>
+  type CT = Record<string, string | boolean> & { id: string; name: string; short: string; family: string; light: boolean };
+  const root = document.documentElement;
+  root.classList.add("js");
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const themes: CT[] = JSON.parse(document.getElementById("theme-data")!.textContent!);
+  const byId = new Map(themes.map((t) => [t.id, t]));
+  const KEYS = ["bg", "fg", "panel", "deep", "border", "muted", "accent", "badge", "badgeFg", "sel", "lineHi", "keyword", "func", "typ", "string", "number", "comment", "tag", "operator", "variable", "property", "constant", "parameter"];
+
+  // ---- colour helpers (for the opt-in page repaint) ----
+  const hex = (c: string) => {
+    let h = c.replace("#", "");
+    if (h.length === 3) h = h.split("").map((x) => x + x).join("");
+    return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+  };
+  const toHex = (rgb: number[]) => "#" + rgb.map((v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0")).join("");
+  const lum = (rgb: number[]) => {
+    const [r, g, b] = rgb.map((v) => {
+      const s = v / 255;
+      return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const ratio = (a: number[], b: number[]) => {
+    const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+    return (hi + 0.05) / (lo + 0.05);
+  };
+  const mix = (a: number[], b: number[], t: number) => a.map((v, i) => v + (b[i] - v) * t);
+  /** Moves `color` toward `toward` until it reads at 4.5:1 on every surface in `on`. */
+  const readable = (color: number[], toward: number[], on: number[][], start = 0, min = 4.5) => {
+    for (let t = start; t <= 1.0001; t += 0.04) {
+      const c = mix(color, toward, t);
+      if (on.every((s) => ratio(c, s) >= min)) return c;
+    }
+    return toward;
+  };
+
+  const PAGE_VARS = [
+    "--bg", "--bg-deep", "--panel", "--panel-2", "--line", "--line-2", "--fg", "--prose", "--muted", "--faint", "--accent", "--accent-hover", "--accent-ink",
+    "--comment", "--ok", "--selection", "--hover", "--page-bg", "--header-bg", "--header-bg-stuck", "--header-bg-solid", "--code-bg", "--well", "--surface",
+    "--surface-raised", "--control-bg", "--control-bg-hover", "--raised", "--figure-bg", "--ticket-bg", "--pill-bg", "--bevel-border", "--edge", "--rail-active",
+    "--nex-grad-text", "--hue-accent", "color-scheme",
+  ];
+  function repaintPage(t: CT) {
+    const bg = hex(t.bg as string), fg = hex(t.fg as string), panel = hex(t.panel as string), deep = hex(t.deep as string);
+    const surfaces = [bg, panel, deep];
+    const muted = readable(mix(fg, bg, 0.28), fg, surfaces);
+    const faint = readable(mix(fg, bg, 0.36), fg, surfaces);
+    const accent = readable(hex(t.accent as string), fg, surfaces, 0);
+    const accentHover = mix(accent, fg, 0.18);
+    const ink = ratio([0, 0, 0], accent) >= ratio([255, 255, 255], accent) ? "#000000" : "#ffffff";
+    const line = hex(t.border as string);
+    const s = root.style;
+    const set = (k: string, v: string) => s.setProperty(k, v);
+    const h = toHex;
+    set("color-scheme", t.light ? "light" : "dark");
+    set("--bg", h(bg)); set("--bg-deep", h(deep)); set("--panel", h(panel)); set("--panel-2", h(panel));
+    set("--line", h(line)); set("--line-2", h(mix(bg, fg, 0.38)));
+    set("--fg", h(fg)); set("--prose", h(fg)); set("--muted", h(muted)); set("--faint", h(faint));
+    set("--accent", h(accent)); set("--hue-accent", h(accent)); set("--accent-hover", h(accentHover)); set("--accent-ink", ink);
+    set("--comment", h(faint)); set("--ok", h(accent));
+    set("--selection", (t.sel as string)); set("--hover", `color-mix(in srgb, ${h(fg)} 7%, transparent)`);
+    set("--page-bg", h(bg));
+    set("--header-bg", h(deep)); set("--header-bg-stuck", h(deep)); set("--header-bg-solid", h(deep));
+    set("--code-bg", h(deep)); set("--well", h(deep));
+    for (const k of ["--surface", "--surface-raised", "--raised", "--figure-bg", "--ticket-bg"]) set(k, h(panel));
+    set("--control-bg", h(panel)); set("--control-bg-hover", h(mix(panel, fg, 0.07)));
+    set("--pill-bg", h(panel));
+    set("--bevel-border", h(mix(bg, fg, 0.22))); set("--edge", h(mix(bg, fg, 0.3)));
+    set("--rail-active", h(mix(panel, accent, 0.14)));
+    set("--nex-grad-text", `linear-gradient(105deg, ${h(accent)}, ${h(mix(accent, fg, 0.45))})`);
+    const force = document.getElementById("theme-color-force");
+    if (force) {
+      force.removeAttribute("media");
+      force.setAttribute("content", h(deep));
+    }
+  }
+  function resetPage() {
+    PAGE_VARS.forEach((k) => root.style.removeProperty(k));
+    const force = document.getElementById("theme-color-force");
+    if (force && root.getAttribute("data-theme-choice") === "system") force.setAttribute("media", "not all");
+    else if (force) force.setAttribute("content", getComputedStyle(root).getPropertyValue("--theme-color").trim() || "#07080e");
+  }
+
+  // ---- preview state ----
+  const pick = document.querySelector<HTMLSelectElement>("[data-pick]")!;
+  const swatches = document.querySelector<HTMLElement>("[data-swatches]")!;
+  const swatchBtns = [...swatches.querySelectorAll<HTMLButtonElement>("button")];
+  const picker = document.querySelector<HTMLElement>("[data-picker]")!;
+  const repaintBox = document.querySelector<HTMLInputElement>("[data-repaint]")!;
+  const repaintWrap = document.querySelector<HTMLElement>("[data-repaint-wrap]")!;
+  const chip = document.querySelector<HTMLElement>("[data-chip]")!;
+  const tourBtn = document.querySelector<HTMLButtonElement>("[data-tour]")!;
+  picker.hidden = swatches.hidden = repaintWrap.hidden = false;
+
+  let current = pick.value;
+  let chosen = false; // false until the visitor picks something: the page keeps the brand palette
+
+  function apply(id: string) {
+    const t = byId.get(id);
+    if (!t) return;
+    current = id;
+    pick.value = id;
+    document.querySelectorAll<HTMLElement>("[data-live-scope]").forEach((scope) => {
+      for (const k of KEYS) scope.style.setProperty(`--p-${k}`, t[k] as string);
+      const ed = scope.querySelector<HTMLElement>("[data-editor]");
+      if (ed) {
+        for (const k of KEYS) ed.style.setProperty(`--p-${k}`, t[k] as string);
+        const set = (key: string, text: string) => {
+          const el = ed.querySelector(`[data-ed=${key}]`);
+          if (el) el.textContent = text;
+        };
+        set("name", t.name);
+        set("kind", t.light ? "Light" : "Dark");
+        set("family", t.family);
+      }
+      scope.querySelectorAll<HTMLElement>("[data-hex]").forEach((el) => (el.textContent = String(t[el.dataset.hex!]).toUpperCase()));
+    });
+    document.querySelectorAll("[data-theme-short]").forEach((el) => (el.textContent = t.short));
+    document.querySelectorAll("[data-snippet-name]").forEach((el) => (el.textContent = t.name));
+    const kind = document.querySelector("[data-theme-kind]");
+    if (kind) kind.textContent = `${t.light ? "Light" : "Dark"} · ${t.family}`;
+    const link = document.querySelector<HTMLAnchorElement>("[data-theme-link]");
+    if (link) link.href = `/themes/${t.id}/`;
+    swatchBtns.forEach((b) => {
+      const on = b.dataset.id === id;
+      b.setAttribute("aria-checked", String(on));
+      b.tabIndex = on ? 0 : -1;
+      if (on) {
+        const left = b.offsetLeft - (swatches.clientWidth - b.offsetWidth) / 2;
+        swatches.scrollTo({ left, behavior: reduceMotion ? "auto" : "smooth" });
+      }
+    });
+    if (chosen && repaintBox.checked) {
+      repaintPage(t);
+      chip.hidden = false;
+    }
+  }
+
+  /** A visitor's own choice: stops the tour, and shows the result if nothing else on screen will. */
+  function choose(id: string, fromCard = false) {
+    stopTour();
+    chosen = true;
+    apply(id);
+    if (fromCard && !repaintBox.checked) document.getElementById("preview")?.scrollIntoView({ block: "center" });
+  }
+
+  pick.addEventListener("change", () => choose(pick.value));
+  picker.querySelectorAll<HTMLButtonElement>("[data-step]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const i = themes.findIndex((t) => t.id === current);
+      const step = Number(b.dataset.step);
+      const next = themes[(i + step + themes.length) % themes.length];
+      choose(next.id);
+    }),
+  );
+  swatchBtns.forEach((b, i) => {
+    b.addEventListener("click", () => choose(b.dataset.id!));
+    b.addEventListener("keydown", (e) => {
+      const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+      if (!step) return;
+      e.preventDefault();
+      const n = swatchBtns[(i + step + swatchBtns.length) % swatchBtns.length];
+      choose(n.dataset.id!);
+      n.focus();
+    });
+  });
+  document.querySelectorAll<HTMLButtonElement>("[data-try]").forEach((b) => b.addEventListener("click", () => choose(b.dataset.try!, true)));
+
+  repaintBox.addEventListener("change", () => {
+    if (repaintBox.checked) {
+      chosen = true;
+      repaintPage(byId.get(current)!);
+      chip.hidden = false;
+    } else {
+      resetPage();
+      chip.hidden = true;
+    }
+  });
+  chip.querySelector("[data-reset]")!.addEventListener("click", () => {
+    repaintBox.checked = false;
+    resetPage();
+    chip.hidden = true;
+  });
+
+  // ---- tour: steps through the themes; off for reduced motion, paused off screen ----
+  let timer: number | undefined;
+  let tourOn = false;
+  let visible = true;
+  const setTour = (on: boolean) => {
+    tourOn = on;
+    tourBtn.setAttribute("aria-pressed", String(on));
+    tourBtn.querySelector("[data-tour-label]")!.textContent = on ? "on" : "off";
+    window.clearInterval(timer);
+    if (on) {
+      timer = window.setInterval(() => {
+        if (!visible || document.hidden) return;
+        const i = themes.findIndex((t) => t.id === current);
+        apply(themes[(i + 1) % themes.length].id);
+      }, 4200);
+    }
+  };
+  function stopTour() {
+    if (tourOn) setTour(false);
+  }
+  tourBtn.addEventListener("click", () => {
+    if (!tourOn) chosen = true;
+    setTour(!tourOn);
+  });
+  new IntersectionObserver((es) => (visible = es[0].isIntersecting), { threshold: 0.1 }).observe(document.getElementById("preview")!);
+  if (!reduceMotion) setTour(true);
+
+  // ---- gallery filter, in the shape of a WHERE clause ----
+  const input = document.getElementById("q") as HTMLInputElement;
+  const cards = [...document.querySelectorAll<HTMLElement>("[data-card]")];
+  const groups = [...document.querySelectorAll<HTMLElement>("[data-family]")];
+  const countEl = document.querySelector("[data-count]")!;
+  const emptyEl = document.querySelector<HTMLElement>("[data-empty]")!;
+  const clearBtn = document.querySelector<HTMLButtonElement>("[data-clear]")!;
+  const SHARED = new Set(["nexql", "dark", "light", "day", "night", "at", "of"]);
+  const vocab = new Set<string>();
+  cards.forEach((c) => c.dataset.words!.split(/[^a-z0-9]+/).filter((w) => w && !SHARED.has(w)).forEach((w) => vocab.add(w)));
+  function filter() {
+    const q = input.value.toLowerCase();
+    const wantDark = /\b(dark|night)\b/.test(q);
+    const wantLight = /\b(light|day)\b/.test(q);
+    const asked = new Set(q.split(/[^a-z0-9]+/).filter((w) => vocab.has(w)));
+    let n = 0;
+    cards.forEach((c) => {
+      const w = new Set(c.dataset.words!.split(/[^a-z0-9]+/));
+      let show = true;
+      if (wantDark && !wantLight) show = c.dataset.kind === "dark";
+      if (wantLight && !wantDark) show = c.dataset.kind === "light";
+      for (const a of asked) if (!w.has(a)) show = false;
+      c.hidden = !show;
+      if (show) n++;
+    });
+    groups.forEach((g) => (g.hidden = ![...g.querySelectorAll<HTMLElement>("[data-card]")].some((c) => !c.hidden)));
+    countEl.textContent = String(n);
+    emptyEl.hidden = n > 0;
+    clearBtn.hidden = q === "";
+  }
+  input.addEventListener("input", filter);
+  clearBtn.addEventListener("click", () => {
+    input.value = "";
+    filter();
+    input.focus();
+  });
+
+  // ---- Route progress: rail on wide screens, bar on narrow ones ----
+  const stops = [...document.querySelectorAll<HTMLElement>(".stop")];
+  const railLinks = [...document.querySelectorAll<HTMLAnchorElement>(".rail a[data-stop]")];
+  const railList = document.querySelector<HTMLElement>(".rail ol");
+  const fill = document.querySelector<HTMLElement>(".track-fill");
+  const mFill = document.querySelector<HTMLElement>(".mbar-fill");
+  const mLabel = document.querySelector<HTMLElement>(".mbar-label");
+  const pad = (n: number) => String(n).padStart(2, "0");
+  function update() {
+    const mark = window.innerHeight * 0.35;
+    let active = 0;
+    stops.forEach((s, i) => {
+      if (s.getBoundingClientRect().top <= mark) active = i;
+    });
+    const r = stops[active].getBoundingClientRect();
+    const within = Math.min(1, Math.max(0, (mark - r.top) / Math.max(1, r.height)));
+    const progress = (active + within) / stops.length;
+    railLinks.forEach((a, i) => {
+      a.classList.toggle("active", i === active);
+      a.classList.toggle("done", i < active);
+      if (i === active) a.setAttribute("aria-current", "step");
+      else a.removeAttribute("aria-current");
+    });
+    if (fill && railList && railLinks.length) {
+      const first = railLinks[0].querySelector(".dot")!.getBoundingClientRect();
+      const cur = railLinks[active].querySelector(".dot")!.getBoundingClientRect();
+      const next = railLinks[Math.min(active + 1, railLinks.length - 1)].querySelector(".dot")!.getBoundingClientRect();
+      fill.style.height = `${Math.max(0, cur.top - first.top + (next.top - cur.top) * within)}px`;
+    }
+    if (mFill) mFill.style.width = `${progress * 100}%`;
+    if (mLabel) mLabel.textContent = `Stop ${pad(active + 1)} of ${pad(stops.length)} · ${railLinks[active]?.querySelector(".rail-label")?.textContent ?? ""}`;
+  }
+  if (railList) {
+    const setH = () => railList.parentElement?.style.setProperty("--rail-h", `${railList.offsetHeight}px`);
+    setH();
+    window.addEventListener("resize", setH);
+  }
+  let queued = false;
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        update();
+      });
+    },
+    { passive: true },
+  );
+  window.addEventListener("resize", update);
+  update();
+</script>

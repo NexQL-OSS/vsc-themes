@@ -89,3 +89,16 @@ src/preview-tokens.mjs        SQL-first token rules
 scripts/generate-previews.mjs compile + package.json contributes.themes
 scripts/validate-themes.mjs   structure + WCAG contrast checks
 ```
+
+## Website
+
+The marketing site (<https://nexql-themes.astrx.dev>) is an Astro project in `site/`. It renders every theme statically from the built `themes/*.json`, and serves those files at `/themes/<file>.json` (with `Access-Control-Allow-Origin: *`) for other NexQL sites.
+
+```bash
+npm run compile                 # themes must be built first
+npm --prefix site install
+npm --prefix site run dev       # http://localhost:4322 (copies themes into site/public, refreshes the brand CSS)
+npm --prefix site run build     # site/dist
+```
+
+`site/scripts/sync-brand.mjs` refreshes `site/src/styles/brand.css` from the sibling `mcp` checkout when it is present; the committed copy is what deploys.

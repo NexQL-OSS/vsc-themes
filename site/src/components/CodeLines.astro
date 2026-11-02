@@ -1,0 +1,53 @@
+---
+/** Token lines drawn in the --p-* colours of the nearest .ed ancestor. */
+import type { Line } from "../data/samples";
+interface Props {
+  lines: Line[];
+  numbers?: boolean;
+}
+const { lines, numbers = false } = Astro.props;
+const ROLE: Record<string, string> = { c: "c", k: "k", f: "f", t: "t", s: "s", n: "n", o: "o", p: "p", v: "v", pa: "pa", pun: "pun" };
+---
+
+<div class="lines" aria-hidden="true">
+  {
+    lines.map((line, i) => (
+      <div class="ln">
+        {numbers && <span class="no">{i + 1}</span>}
+        <span class="tx">
+          {line.length ? line.map(([role, text]) => <span class={`t-${ROLE[role] ?? "v"}`}>{text}</span>) : <>&nbsp;</>}
+        </span>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .ln {
+    display: flex;
+    gap: 16px;
+    min-height: 1.7em;
+  }
+  .no {
+    flex: none;
+    width: 2ch;
+    text-align: right;
+    color: var(--p-muted);
+    opacity: 0.8;
+    user-select: none;
+  }
+  .tx {
+    white-space: pre;
+  }
+  .t-c { color: var(--p-comment); font-style: italic; }
+  .t-k { color: var(--p-keyword); }
+  .t-f { color: var(--p-func); }
+  .t-t { color: var(--p-typ); font-style: italic; }
+  .t-s { color: var(--p-string); }
+  .t-n { color: var(--p-number); }
+  .t-o { color: var(--p-operator); }
+  .t-p { color: var(--p-property); }
+  .t-v { color: var(--p-variable); }
+  .t-pa { color: var(--p-parameter); }
+  .t-pun { color: var(--p-muted); }
+</style>
