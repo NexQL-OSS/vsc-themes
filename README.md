@@ -10,7 +10,7 @@
   <strong><a href="https://nexql.astrx.dev/">••• NexQL DB Extension for VS Code</a></strong>
 </p>
 
-**NexQL Themes** — a VS Code color-theme family for database work and everyday coding. Eleven scenario-anchored variants (dark, light, OLED, homage) share one design language: quiet keywords, a disciplined cool→warm syntax spectrum, and a single reserved accent for errors.
+**NexQL Themes** — a VS Code color-theme family for database work and everyday coding. 39 scenario-anchored variants (dark, light, OLED, homage, environment, seasonal and more) share one design language: quiet keywords, a disciplined cool→warm syntax spectrum, and a single reserved accent for errors.
 
 Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=ric-v.nexql-themes) or [Open VSX](https://open-vsx.org/extension/ric-v/nexql-themes), then `Preferences: Color Theme` → pick any **NexQL** theme.
 

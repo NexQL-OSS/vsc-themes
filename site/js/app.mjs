@@ -82,7 +82,8 @@ const state = {
   query: "",
   auto: true,
   file: "sql",
-  copied: false,
+  /** @type {"install" | "setting" | null} */
+  copied: null,
 };
 
 /** @type {ReturnType<typeof setInterval> | null} */
@@ -215,12 +216,36 @@ function filterThemes(q) {
   let list = themes.slice();
   if (/\bdark\b|\bnight\b/.test(needle)) list = list.filter((t) => !t.light);
   if (/\blight\b|\bday\b/.test(needle)) list = list.filter((t) => t.light);
-  for (const token of ["claudy", "sage", "postgres", "drift", "ember", "mute", "oled", "break", "dawn"]) {
-    if (needle.includes(token)) {
-      list = list.filter((t) => `${t.family} ${t.name}`.toLowerCase().includes(token));
+  const words = new Set(needle.split(/[^a-z0-9]+/));
+  for (const token of nameTokens()) {
+    if (words.has(token)) {
+      list = list.filter((t) => themeWords(t).has(token));
     }
   }
   return list;
+}
+
+/** Words that the dark/light filter already handles, or that every theme shares. */
+const SHARED_WORDS = new Set(["nexql", "dark", "light", "day", "night", "at", "of"]);
+
+/**
+ * @param {Record<string, unknown>} th
+ * @returns {Set<string>}
+ */
+function themeWords(th) {
+  return new Set(`${th.family} ${th.name}`.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean));
+}
+
+/**
+ * Every family and name word in the catalog, so new themes are filterable without code changes.
+ * @returns {Set<string>}
+ */
+function nameTokens() {
+  const tokens = new Set();
+  for (const th of themes) {
+    for (const word of themeWords(th)) if (!SHARED_WORDS.has(word)) tokens.add(word);
+  }
+  return tokens;
 }
 
 function applyCssVars() {
@@ -287,19 +312,40 @@ function tickTour() {
   render();
 }
 
-async function copyInstall() {
+/**
+ * @returns {string}
+ */
+function settingSnippet() {
+  return `"workbench.colorTheme": "${currentTheme().name}"`;
+}
+
+/**
+ * @param {"install" | "setting"} which
+ * @param {string} text
+ */
+async function copyText(which, text) {
   try {
-    await navigator.clipboard.writeText("ext install ric-v.nexql-themes");
+    await navigator.clipboard.writeText(text);
   } catch {
     // clipboard may be blocked
   }
-  state.copied = true;
+  state.copied = which;
   render();
   if (copyTimer) clearTimeout(copyTimer);
   copyTimer = setTimeout(() => {
-    state.copied = false;
+    state.copied = null;
     render();
   }, 1700);
+}
+
+function copyInstall() {
+  copyText("install", "ext install ric-v.nexql-themes");
+}
+
+function copySetting() {
+  // Stop the auto-tour so the theme being copied stays on screen.
+  state.auto = false;
+  copyText("setting", settingSnippet());
 }
 
 /**
@@ -595,6 +641,20 @@ function renderSyntax(mount) {
 }
 
 /**
+ * FAMILY_PAIRS whose two themes are both in the manifest.
+ * @returns {Array<{ family: string, day: Record<string, unknown>, night: Record<string, unknown> }>}
+ */
+function familyPairs() {
+  const pairs = [];
+  for (const [family, dayId, nightId] of FAMILY_PAIRS) {
+    const day = themes.find((t) => t.id === dayId);
+    const night = themes.find((t) => t.id === nightId);
+    if (day && night) pairs.push({ family, day, night });
+  }
+  return pairs;
+}
+
+/**
  * @param {HTMLElement} mount
  */
 function renderCompare(mount) {
@@ -602,10 +662,7 @@ function renderCompare(mount) {
   const grid = document.createElement("div");
   grid.className = "compare-grid";
 
-  for (const [family, dayId, nightId] of FAMILY_PAIRS) {
-    const day = themes.find((t) => t.id === dayId);
-    const night = themes.find((t) => t.id === nightId);
-    if (!day || !night) continue;
+  for (const { family, day, night } of familyPairs()) {
 
     const card = document.createElement("div");
     card.className = "compare-family";
@@ -618,15 +675,13 @@ function renderCompare(mount) {
     const sub = document.createElement("span");
     sub.style.cssText = `font-size:12px;font-family:${MONO}`;
     sub.style.color = "var(--muted)";
-    sub.textContent = "day / night";
+    sub.textContent = day.light === night.light ? "a matched pair" : "day / night";
     head.append(title, sub);
 
     const panes = document.createElement("div");
     panes.className = "compare-panes";
-    for (const [th, tag] of [
-      [day, "DAY"],
-      [night, "NIGHT"],
-    ]) {
+    for (const th of [day, night]) {
+      const tag = th.light ? "LIGHT" : "DARK";
       const pane = document.createElement("button");
       pane.type = "button";
       pane.className = "compare-pane";
@@ -675,12 +730,21 @@ function render() {
   const countEl = root.querySelector("[data-theme-count]");
   if (countEl) countEl.textContent = String(filterThemes(state.query).length);
 
-  const totalEl = root.querySelector("[data-theme-total]");
-  if (totalEl) totalEl.textContent = String(themes.length);
+  root.querySelectorAll("[data-theme-total]").forEach((el) => {
+    el.textContent = String(themes.length);
+  });
+
+  const pairCount = root.querySelector("[data-pair-count]");
+  if (pairCount) pairCount.textContent = String(familyPairs().length);
 
   const copyLabel = root.querySelector("[data-copy-label]");
   if (copyLabel) {
-    copyLabel.textContent = state.copied ? "Copied to clipboard ✓" : "ext install ric-v.nexql-themes";
+    copyLabel.textContent = state.copied === "install" ? "Copied to clipboard ✓" : "ext install ric-v.nexql-themes";
+  }
+
+  const settingLabel = root.querySelector("[data-setting-label]");
+  if (settingLabel) {
+    settingLabel.textContent = state.copied === "setting" ? "Copied to clipboard ✓" : settingSnippet();
   }
 
   const queryInput = /** @type {HTMLInputElement | null} */ (root.querySelector("[data-query-input]"));
@@ -699,6 +763,7 @@ function wireControls() {
   root?.querySelector("[data-next-theme]")?.addEventListener("click", nextTheme);
   root?.querySelector("[data-toggle-auto]")?.addEventListener("click", toggleAuto);
   root?.querySelector("[data-copy-install]")?.addEventListener("click", copyInstall);
+  root?.querySelector("[data-copy-setting]")?.addEventListener("click", copySetting);
 
   const queryInput = /** @type {HTMLInputElement | null} */ (root?.querySelector("[data-query-input]"));
   queryInput?.addEventListener("input", (e) => {
@@ -711,6 +776,8 @@ function wireControls() {
     ["type = 'dark'", "WHERE type = 'dark'"],
     ["type = 'light'", "WHERE type = 'light'"],
     ["family = 'Claudy'", "WHERE family = 'Claudy'"],
+    ["family = 'Sentinel'", "WHERE family = 'Sentinel'"],
+    ["family = 'Seasonal'", "WHERE family = 'Seasonal'"],
     ["name LIKE 'Postgres%'", "WHERE name LIKE 'Postgres%'"],
     ["clear", ""],
   ];

@@ -7,7 +7,7 @@
     <title>NexQL Themes — VS Code color themes for SQL</title>
     <meta
       name="description"
-      content="Eleven NexQL color themes for VS Code — warm clay days through pure-black OLED nights. Live preview and install links."
+      content="39 NexQL color themes for VS Code, from warm clay days to pure-black OLED nights, all in one Marketplace extension. Live preview and install links."
     />
     <link rel="icon" href="assets/logo.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -42,7 +42,7 @@
           <a href="#top" class="site-logo">
             <img src="assets/logo.png" alt="NexQL" width="34" height="34" />
             <span class="site-logo-text brand-gradient">NexQL</span>
-            <span class="site-logo-badge"><span data-theme-total>11</span> themes</span>
+            <span class="site-logo-badge"><span data-theme-total>39</span> themes</span>
           </a>
           <div id="header-theme-switcher" class="header-theme-switcher" aria-label="Theme switcher"></div>
           <nav class="site-nav">
@@ -50,7 +50,7 @@
             <a href="#syntax">Syntax</a>
             <a href="#compare">Compare</a>
             <a href="https://nexql.astrx.dev/" target="_blank" rel="noopener noreferrer" class="site-nav-product">NexQL</a>
-            <a href="#install" class="btn-install">Themes</a>
+            <a href="#install" class="btn-install">Install</a>
           </nav>
         </div>
       </header>
@@ -72,7 +72,7 @@
             <h1 class="hero-title">
               The
               <span class="hero-title-em brand-gradient">NexQL</span>
-              palette, in eleven themes.
+              palette, in <span data-theme-total>39</span> themes.
             </h1>
             <p class="hero-body">
               <a href="https://nexql.astrx.dev/" target="_blank" rel="noopener noreferrer" class="hero-body-link">NexQL</a>
@@ -83,7 +83,7 @@
             <div class="hero-actions">
               <a href="https://nexql.astrx.dev/" target="_blank" rel="noopener noreferrer" class="btn-primary">Get NexQL ↗</a>
               <a href="#install" class="btn-secondary">Get NexQL Themes</a>
-              <a href="#themes" class="btn-tertiary">Preview <span data-theme-total>11</span> themes</a>
+              <a href="#themes" class="btn-tertiary">Preview <span data-theme-total>39</span> themes</a>
             </div>
           </div>
           <div id="hero-editor" class="hero-preview"></div>
@@ -110,7 +110,7 @@
       </section>
 
       <section id="themes" class="site-section site-pad-inline">
-        <h2 class="section-title"><span data-theme-total>11</span> themes. <span style="color: var(--accent)">Query</span> them.</h2>
+        <h2 class="section-title"><span data-theme-total>39</span> themes. <span style="color: var(--accent)">Query</span> them.</h2>
         <p class="section-lead">
           Filter the gallery the way you'd filter a table. Type a clause or tap a chip — clicking any result re-skins this whole page.
         </p>
@@ -126,7 +126,7 @@
               placeholder="SELECT * FROM themes WHERE type = 'dark';"
               spellcheck="false"
             />
-            <span class="sql-console-count">→ <span data-theme-count>11</span> of <span data-theme-total>11</span></span>
+            <span class="sql-console-count">→ <span data-theme-count>39</span> of <span data-theme-total>39</span></span>
           </div>
           <div data-query-presets class="sql-console-presets"></div>
         </div>
@@ -149,7 +149,7 @@
           <span style="font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400">night shift.</span>
         </h2>
         <p class="section-lead section-lead--spaced">
-          Three families ship a matched pair, so your editor follows you from morning standup to midnight debugging. Tap either to apply.
+          <span data-pair-count>Eleven</span> families ship a matched pair, so your editor follows you from morning standup to midnight debugging. Tap either to apply.
         </p>
         <div id="family-compare"></div>
       </section>
@@ -159,16 +159,25 @@
           <div class="install-card-body">
             <h2 class="install-title">Get the themes.</h2>
             <p class="install-lead">
-              Install <strong>NexQL Themes</strong> in VS Code — search the Marketplace or run the command below — then
+              All <span data-theme-total>39</span> themes ship in one extension, <strong>NexQL Themes</strong>. Install it from the
+              Marketplace or with the command below, then press
               <code style="font-family: 'JetBrains Mono', monospace; background: rgba(255, 255, 255, 0.16); padding: 2px 7px; border-radius: 6px"
                 >Cmd/Ctrl K, Cmd/Ctrl T</code
               >
-              to switch. Best paired with
+              to pick one. Best paired with
               <a href="https://nexql.astrx.dev/" target="_blank" rel="noopener noreferrer" class="install-lead-link">NexQL</a>.
             </p>
             <button type="button" data-copy-install class="install-copy-btn">
               <span class="install-copy-prefix">$</span>
               <span data-copy-label class="install-copy-label">ext install ric-v.nexql-themes</span>
+              <span class="install-copy-action">COPY</span>
+            </button>
+            <p class="install-step">
+              Or switch straight to <span data-theme-name>…</span> by adding this to your <code>settings.json</code>:
+            </p>
+            <button type="button" data-copy-setting class="install-copy-btn">
+              <span class="install-copy-prefix">{}</span>
+              <span data-setting-label class="install-copy-label">"workbench.colorTheme": "NexQL Claudy Day"</span>
               <span class="install-copy-action">COPY</span>
             </button>
             <div class="install-actions">
@@ -179,6 +188,7 @@
                 class="install-link install-link--primary"
                 >VS Marketplace ↗</a
               >
+              <a href="vscode:extension/ric-v.nexql-themes" class="install-link install-link--secondary">Open in VS Code</a>
               <a
                 href="https://open-vsx.org/extension/ric-v/nexql-themes"
                 target="_blank"

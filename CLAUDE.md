@@ -25,7 +25,7 @@ There is no test framework and no transpile step — `.mjs` runs directly under 
 Consequences:
 - Do **not** hand-edit `contributes.themes` in `package.json` — it is regenerated. Register themes in `static-themes.mjs` / `directions/index.mjs` instead.
 - Hand-edits to `themes/*.json` survive compile **only** for keys the generator does not emit (see `scripts/merge-theme-customizations.mjs`). Generator-owned keys are always refreshed, so author real changes in `src/`, not the JSON.
-- Two theme classes: **DIRECTIONS** (generated from a `DirectionSpec`, currently empty) and **STATIC_THEMES** (hand-authored JSON, listed but not regenerated). All 11 current themes are static.
+- Two theme classes: **DIRECTIONS** (generated from a `DirectionSpec` in `src/directions/`) and **STATIC_THEMES** (hand-authored JSON, listed but not regenerated). All 39 current themes are DIRECTIONS; STATIC_THEMES is empty.
 
 ## Validation rules (enforced by `validate`, fails the build)
 

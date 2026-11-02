@@ -29,6 +29,13 @@ for (const spec of DIRECTIONS) {
   parseThemeSummary(themeJson, spec);
 }
 
+// The page ships the theme count as static text for crawlers and no-JS visitors; keep it honest.
+const html = readFileSync(join(SITE_DIR, "index.html"), "utf8");
+const stale = [...html.matchAll(/<span data-theme-(?:total|count)>(\d+)<\/span>/g)].filter((m) => Number(m[1]) !== manifest.length);
+if (stale.length || !html.includes(`content="${manifest.length} NexQL color themes`)) {
+  throw new Error(`site/index.html: theme count must be ${manifest.length} (check data-theme-total spans and the meta description)`);
+}
+
 cpSync(join(ROOT, "nexql-theme-logo.png"), join(ASSETS_OUT, "logo.png"));
 cpSync(join(ROOT, "src/site/parse-theme-summary.mjs"), join(SITE_DIR, "js/parse-theme-summary.mjs"));
 

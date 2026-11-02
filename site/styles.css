@@ -564,6 +564,20 @@ body {
   flex: none;
 }
 
+.install-step {
+  margin: 22px 0 12px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.install-step code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  background: rgba(255, 255, 255, 0.16);
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
 .install-actions {
   margin-top: 20px;
   display: flex;
